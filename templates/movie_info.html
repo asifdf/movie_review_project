@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>영화 상세</title>
+</head>
+<body>
+
+    <h1>{{ movie[1] }}</h1>
+
+    <p>감독: {{ movie[2] }}</p>
+    <p>장르: {{ movie[3] }}</p>
+    <p>개봉일: {{ movie[4] }}</p>
+
+    <h3>평균 평점: {{ avg_rating }}</h3>
+
+    {% if message %}
+        <p style="color: green;"><strong>{{ message }}</strong></p>
+    {% endif %}
+
+    <p>
+        보기 모드:
+        <a href="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id, view='all') }}">전체 리뷰</a> |
+        <a href="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id, view='following') }}">팔로우한 사람 리뷰만</a>
+    </p>
+    <p>
+        현재 필터: {{ '팔로우한 사람만' if view == 'following' else '전체' }}
+    </p>
+
+    <hr>
+
+    <h2>좌석 예매</h2>
+    <form method="POST" action="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id) }}">
+        <input type="hidden" name="action" value="reserve">
+        <p>
+            예매 날짜:
+            <input type="date" name="show_date" required>
+        </p>
+        <p>
+            좌석 번호:
+            <input type="text" name="seat_number" placeholder="A1" required>
+        </p>
+        <button type="submit">예매하기</button>
+    </form>
+
+    {% if reservations %}
+    <h3>예매된 좌석</h3>
+    <table border="1">
+        <tr>
+            <th>좌석 번호</th>
+            <th>예약자</th>
+            <th>예약 날짜</th>
+        </tr>
+        {% for seat, reserve_time, reserver in reservations %}
+        <tr>
+            <td>{{ seat }}</td>
+            <td>{{ reserver }}</td>
+            <td>{{ reserve_time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <hr>
+
+    <h2>리뷰 작성 / 수정</h2>
+
+    <form method="POST" action="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id) }}">
+        <input type="hidden" name="action" value="review">
+        <p>
+            평점:
+            <input type="number" name="rating" min="1" max="5" required>
+        </p>
+
+        <p>
+            리뷰:<br>
+            <textarea name="review" rows="5" cols="50" required></textarea>
+        </p>
+
+        <button type="submit">등록 / 수정</button>
+    </form>
+
+    <hr>
+
+    <h2>리뷰 목록</h2>
+
+    <table border="1">
+        <tr>
+            <th>작성자</th>
+            <th>평점</th>
+            <th>리뷰</th>
+            <th>작성시간</th>
+        </tr>
+
+        {% for review in reviews %}
+        <tr>
+            <td>
+                {{ review[0] }}
+                {% if review[0] != user_id %}
+                    [{% if review[0] in following %}
+                        <a href="{{ url_for('tie_action', action='unfollow', target_id=review[0], user_id=user_id) }}">뮤트</a>
+                      {% else %}
+                        <a href="{{ url_for('tie_action', action='follow', target_id=review[0], user_id=user_id) }}">팔로우</a>
+                      {% endif %}]
+                {% endif %}
+            </td>
+            <td>{{ review[1] }}</td>
+            <td>{{ review[2] }}</td>
+            <td>{{ review[3] }}</td>
+            <td>
+                {% if review[0] != user_id %}
+                <form method="POST" action="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id) }}" style="display:inline; margin:0; padding:0;">
+                    <input type="hidden" name="action" value="report">
+                    <input type="hidden" name="reviewer_id" value="{{ review[0] }}">
+                    <input type="text" name="reason" placeholder="신고 사유" required size="12">
+                    <button type="submit">신고</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br><br>
+
+    <a href="{{ url_for('main', user_id=user_id) }}">메인으로 돌아가기</a>
+
+</body>
+</html>

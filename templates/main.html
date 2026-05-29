@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>메인 페이지</title>
+</head>
+<body>
+    <h1>영화 리뷰 사이트 메인</h1>
+
+    <p>현재 로그인 사용자: {{ user_id }}</p>
+    <p>
+        보기 모드:
+        <a href="{{ url_for('main', user_id=user_id, view='all') }}">전체 리뷰</a> |
+        <a href="{{ url_for('main', user_id=user_id, view='following') }}">팔로우한 사람 리뷰만</a>
+    </p>
+    <p>
+        현재 필터: {{ '팔로우한 사람만' if view == 'following' else '전체' }}
+    </p>
+
+    <hr>
+
+    <h2>사용자 관계</h2>
+    <table border="1">
+        <tr>
+            <th>사용자</th>
+            <th>상태</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user }}</td>
+            <td>
+                {% if user in following %}
+                    <a href="{{ url_for('tie_action', action='unfollow', target_id=user, user_id=user_id) }}">뮤트</a>
+                {% else %}
+                    <a href="{{ url_for('tie_action', action='follow', target_id=user, user_id=user_id) }}">팔로우</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <h2>영화 목록</h2>
+    <table border="1">
+        <tr>
+            <th>영화ID</th>
+            <th>제목</th>
+            <th>감독</th>
+            <th>장르</th>
+            <th>개봉일</th>
+        </tr>
+
+        {% for movie in movies %}
+        <tr>
+            <td>{{ movie[0] }}</td>
+            <td>
+                <a href="{{ url_for('movie_info', movie_id=movie[0], user_id=user_id) }}">
+                {{ movie[1] }}
+            </a></td>
+            <td>{{ movie[2] }}</td>
+            <td>{{ movie[3] }}</td>
+            <td>{{ movie[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <h2>리뷰 목록</h2>
+    <table border="1">
+        <tr>
+            <th>영화제목</th>
+            <th>작성자</th>
+            <th>평점</th>
+            <th>리뷰</th>
+            <th>작성시간</th>
+        </tr>
+
+        {% for review in reviews %}
+        <tr>
+            <td>{{ review[5] }}</td>
+            <td>
+                {{ review[1] }}
+                {% if review[1] != user_id %}
+                    [{% if review[1] in following %}
+                        <a href="{{ url_for('tie_action', action='unfollow', target_id=review[1], user_id=user_id) }}">뮤트</a>
+                      {% else %}
+                        <a href="{{ url_for('tie_action', action='follow', target_id=review[1], user_id=user_id) }}">팔로우</a>
+                      {% endif %}]
+                {% endif %}
+            </td>
+            <td>{{ review[2] }}</td>
+            <td>{{ review[3] }}</td>
+            <td>{{ review[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
